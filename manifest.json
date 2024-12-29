@@ -3,7 +3,9 @@
   "name": "Side Panel Toggle",
   "version": "1.0",
   "permissions": [
-    "sidePanel"
+    "sidePanel",
+    "contextMenus",
+    "storage"
   ],
   "side_panel": {
     "default_path": "sidepanel.html"
@@ -13,5 +15,16 @@
   },
   "background": {
     "service_worker": "service-worker.js"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      }
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }
