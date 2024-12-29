@@ -5,7 +5,13 @@
   "permissions": [
     "sidePanel",
     "contextMenus",
-    "storage"
+    "storage",
+    "webRequest",
+    "webRequestBlocking"
+  ],
+  "host_permissions": [
+    "https://api.openai.com/*",
+    "https://*.vercel.app/*"
   ],
   "side_panel": {
     "default_path": "sidepanel.html"
@@ -25,6 +31,7 @@
     }
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://api.openai.com",
+    "sandbox": "sandbox allow-scripts; script-src 'self'; object-src 'self'"
   }
 }

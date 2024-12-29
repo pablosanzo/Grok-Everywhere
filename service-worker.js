@@ -25,3 +25,22 @@ chrome.storage.onChanged.addListener((changes) => {
     console.log('API key updated');
   }
 });
+
+// Intercept chat API requests
+chrome.webRequest.onBeforeSendHeaders.addListener(
+  function(details) {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['apiKey'], function(result) {
+        if (result.apiKey) {
+          details.requestHeaders.push({
+            name: 'Authorization',
+            value: `Bearer ${result.apiKey}`
+          });
+        }
+        resolve({ requestHeaders: details.requestHeaders });
+      });
+    });
+  },
+  { urls: ['https://api.openai.com/*'] },
+  ['blocking', 'requestHeaders']
+);

@@ -82,15 +82,7 @@
   </div>
 
   <script>
-    chrome.storage.local.get(['apiKey'], function(result) {
-      if (!result.apiKey) {
-        window.location.href = 'api-key.html';
-        return;
-      }
-      const apiKey = result.apiKey;
-
-      // Initialize chat functionality
-
+    // Initialize chat elements
     const messagesElement = document.getElementById('messages');
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
@@ -106,6 +98,14 @@
     async function sendMessage() {
       const message = messageInput.value.trim();
       if (!message) return;
+
+      // Get API key from storage
+      const { apiKey } = await chrome.storage.local.get(['apiKey']);
+      if (!apiKey) {
+        addMessage('assistant', 'Please set your API key first');
+        window.location.href = 'api-key.html';
+        return;
+      }
 
       addMessage('user', message);
       messageInput.value = '';
@@ -126,16 +126,37 @@
         });
 
         const data = await response.json();
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            // Invalid API key
+            chrome.storage.local.remove(['apiKey'], () => {
+              addMessage('assistant', 'Invalid API key. Please enter a valid API key.');
+              window.location.href = 'api-key.html';
+            });
+            return;
+          }
+          throw new Error(data.error?.message || `API request failed with status ${response.status}`);
+        }
+
         if (data.choices && data.choices[0]) {
           addMessage('assistant', data.choices[0].message.content);
+        } else {
+          throw new Error('No response from chatbot');
         }
       } catch (error) {
-        addMessage('assistant', 'Error: Unable to get response from chatbot');
+        console.error('Chat error:', error);
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          addMessage('assistant', 'Network error: Please check your internet connection');
+        } else {
+          addMessage('assistant', `Error: ${error.message}`);
+        }
       } finally {
         sendButton.disabled = false;
       }
     }
 
+    // Set up event listeners
     messageInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         sendMessage();
@@ -143,7 +164,6 @@
     });
 
     sendButton.addEventListener('click', sendMessage);
-    });
   </script>
 </body>
 </html>
